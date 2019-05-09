@@ -21,3 +21,11 @@ File: [IgniteMe.exe](IgniteMe.exe)
 # Bài 5
 
 File: [FLEGGO.zip](FLEGGO.zip)
+
+# Bài 6
+
+File: [Jewel.apk](Jewel.apk)
+
+# Bài 7
+
+http://ksnctf.sweetduet.info/problem/24
