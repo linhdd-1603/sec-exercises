@@ -85,3 +85,106 @@ open(path + "encypt.key", 'wb').write(xord_byte_array)
 ```
 Sau đó ta sẽ sinh ngược lại được file flag.key và XOR ngược lại để lấy được flag. Ta đọc file flag và thu được flag là:
 FLAG_G9A77N4nBW8gorxC
+
+#Bài 2:
+Sau khi phân tích source code thì ta có thể thấy rằng mỗi lần client request thì chương trình sẽ tạo ra 1 số ngẫu nhiên thông qua hàm getrandbits(32) để tạo 1 số từ 32 bit ngẫu nhiên.
+View source code của hàm này nên ta có thể thấy rằng nó dùng thuật toán mt để sinh số ngẫu nhiên.
+Từ đó ta có cách giải quyết bài toán là sẽ request 624 lần lên server để lấy được 1 list các số từ đó lật ngược lại để tạo hàm sinh random riêng theo thuật toán mt.
+Ta có code sau:
+```python
+from socket import socket
+
+N = 624
+M = 397
+MATRIX_A = 0x9908b0df
+UPPER_MASK = 0x80000000
+LOWER_MASK = 0x7fffffff
+
+mt = [0 for i in xrange(624)]
+mti = N + 1
+
+
+def genrand_int32():
+    global mti
+    y = 0
+    mag01 = [0x0, 0x9908b0df]
+
+    if mti >= N:
+        kk = 0
+
+        for kk in range(kk, N - M):
+            y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK)
+            mt[kk] = mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1]
+        kk += 1
+
+        for kk in range(kk, N - 1, 1):
+            y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK)
+            mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1]
+        y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK)
+        mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1]
+        mti = 0
+    y = mt[mti]
+    mti += 1
+    y ^= (y >> 11)
+    y ^= (y << 7) & 0x9d2c5680
+    y ^= (y << 15) & 0xefc60000
+    y ^= (y >> 18)
+
+    return y
+
+
+def unshiftRight(x, shift):
+    res = x
+    for i in range(32):
+        res = x ^ res >> shift
+    return res
+
+
+def unshiftLeft(x, shift, mask):
+    res = x
+    for i in range(32):
+        res = x ^ (res << shift & mask)
+    return res
+
+
+def untemper(v):
+    v = unshiftRight(v, 18)
+    v = unshiftLeft(v, 15, 0xefc60000)
+    v = unshiftLeft(v, 7, 0x9d2c5680)
+    v = unshiftRight(v, 11)
+    return v
+
+
+def getNumber(data):
+    return int(data.split(" ")[5][0:-1])
+
+
+sock = socket()
+sock.connect(('188.166.218.1', 2017))
+# sock.connect(('0.0.0.0', 2017))
+data = sock.recv(10240)
+print data
+data = sock.recv(10240)
+print data
+for x in range(624):
+    sock.send('123\n'.encode())
+    data = sock.recv(10240)
+    number = getNumber(data)
+    data = sock.recv(10240)
+    mt[x] = untemper(number)
+    print str(x)
+mti = 0
+for x in range(624):
+    genrand_int32()
+for x in range(501):
+    temp = str(genrand_int32()) + '\n'
+    print temp
+    sock.send(temp.encode())
+    data = sock.recv(10240)
+    print data
+    data = sock.recv(10240)
+    print data
+
+```
+Sau khi chạy ta có thể lấy được flag là: 
+Flag{Am4zing_g0_Buy_v1etlot_n0w_$$$}
