@@ -39,7 +39,7 @@
   - [x] Ex 1
 - [x] [0x06 - One-Time Pad + RNG](0x06)
   - [x] Ex 1
-  - [ ] Ex 2
+  - [x] Ex 2
 - [ ] [0x07 - Javascript](0x07)
   - [x] Ex 1
   - [ ] Ex 2
